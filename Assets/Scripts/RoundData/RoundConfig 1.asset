@@ -18,5 +18,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 0e32a959dbdf71d4f98521c2d8f63b1c, type: 2}
   - {fileID: 11400000, guid: 029b810445cfedf41aca940407d4cd4c, type: 2}
   - {fileID: 11400000, guid: 2b372717de4ecd84f9f1c01bce8a65b7, type: 2}
-  requiredCount: 3
-  correctCardIds: 020000000300000004000000
+  requiredCount: 1
+  correctCardIds: 02000000
+  characterPrefabs:
+  - {fileID: 3601484010585911347, guid: e8f15e48ad9cf344d8ea9de5e4477e05, type: 3}

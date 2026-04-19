@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -23,6 +24,11 @@ public sealed class HandController : MonoBehaviour
 
     public int RequiredPlayCount => currentRound != null ? currentRound.RequiredCount : 0;
 
+    /// <summary>
+    /// 出牌结果事件：true=correct, false=wrong
+    /// </summary>
+    public event Action<bool> Played;
+
     public void SetRound(RoundConfig round)
     {
         currentRound = round;
@@ -41,6 +47,11 @@ public sealed class HandController : MonoBehaviour
             ClearSelection();
     }
 
+    /// <summary>
+    /// 单选逻辑：最多只允许选中 1 张。
+    /// - 点已选中牌：取消选择
+    /// - 点未选中牌：取消之前选中 -> 选中新牌
+    /// </summary>
     public void ToggleSelect(CardView card)
     {
         if (!CanInteract) return;
@@ -50,12 +61,19 @@ public sealed class HandController : MonoBehaviour
         {
             _selected.Remove(card);
             card.SetSelected(false);
+            return;
         }
-        else
+
+        // 选中新牌前，取消所有历史选中（保证单选）
+        for (int i = 0; i < _selected.Count; i++)
         {
-            _selected.Add(card);
-            card.SetSelected(true);
+            var prev = _selected[i];
+            if (prev != null) prev.SetSelected(false);
         }
+        _selected.Clear();
+
+        _selected.Add(card);
+        card.SetSelected(true);
     }
 
     // 供 UI Button 直接绑定调用
@@ -65,29 +83,33 @@ public sealed class HandController : MonoBehaviour
         if (_selected.Count == 0) return;
         if (currentRound == null) return;
 
+        // 数量不对：直接判错并通知
         if (!currentRound.IsSelectionCountValid(_selected.Count))
         {
-            Debug.Log($"Wrong count: need {currentRound.RequiredCount}, but played {_selected.Count}.");
+            Played?.Invoke(false);
             return;
         }
 
         var playedIds = _selected.Select(c => c.CardId).ToArray();
-        if (!currentRound.IsCorrect(playedIds))
+        bool correct = currentRound.IsCorrect(playedIds);
+
+        if (!correct)
         {
-            Debug.Log("Wrong cards.");
+            Played?.Invoke(false);
             return;
         }
 
-        Debug.Log("Correct!");
-
-        foreach (var card in _selected.ToArray())
+        // 正确：移除已出的牌
+        foreach (var c in _selected.ToArray())
         {
-            _hand.Remove(card);
-            Destroy(card.gameObject);
+            _hand.Remove(c);
+            Destroy(c.gameObject);
         }
 
         _selected.Clear();
         LayoutHand();
+
+        Played?.Invoke(true);
     }
 
     public void ClearHand()

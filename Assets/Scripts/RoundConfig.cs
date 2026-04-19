@@ -15,9 +15,14 @@ public sealed class RoundConfig : ScriptableObject
     [Tooltip("Correct answer card IDs. Order does not matter.")]
     [SerializeField] private List<int> correctCardIds = new List<int>();
 
+    [Header("Character Animation Prefabs")]
+    [Tooltip("Prefabs to instantiate for this round's character animation.")]
+    [SerializeField] private List<GameObject> characterPrefabs = new List<GameObject>();
+
     public IReadOnlyList<CardDefinition> DealtCards => dealtCards;
     public int RequiredCount => requiredCount;
     public IReadOnlyList<int> CorrectCardIds => correctCardIds;
+    public IReadOnlyList<GameObject> CharacterPrefabs => characterPrefabs;
 
     public bool IsSelectionCountValid(int selectedCount) => selectedCount == requiredCount;
 
@@ -26,7 +31,6 @@ public sealed class RoundConfig : ScriptableObject
         if (playedIds == null) return false;
         if (playedIds.Count != requiredCount) return false;
 
-        // Order-independent multiset compare
         return playedIds
             .OrderBy(x => x)
             .SequenceEqual(correctCardIds.OrderBy(x => x));
