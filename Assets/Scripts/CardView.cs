@@ -11,6 +11,7 @@ public sealed class CardView : MonoBehaviour
 
     private HandController _hand;
     private Vector3 _baseLocalPos;
+    private Quaternion _baseLocalRot = Quaternion.identity;
     private Coroutine _moveCo;
 
     private SpriteRenderer _renderer;
@@ -29,6 +30,7 @@ public sealed class CardView : MonoBehaviour
     {
         _hand = hand;
         _baseLocalPos = transform.localPosition;
+        _baseLocalRot = transform.localRotation;
     }
 
     public void SetDefinition(CardDefinition definition)
@@ -38,9 +40,10 @@ public sealed class CardView : MonoBehaviour
             _renderer.sprite = _definition != null ? _definition.Artwork : null;
     }
 
-    public void SetBaseLocalPosition(Vector3 baseLocalPos)
+    public void SetBaseTransform(Vector3 baseLocalPos, Quaternion baseLocalRot)
     {
         _baseLocalPos = baseLocalPos;
+        _baseLocalRot = baseLocalRot;
     }
 
     private void OnMouseDown()
@@ -53,30 +56,35 @@ public sealed class CardView : MonoBehaviour
     {
         IsSelected = selected;
 
-        var target = _baseLocalPos + (IsSelected ? new Vector3(0f, selectedYOffset, 0f) : Vector3.zero);
-        MoveToLocal(target);
+        Vector3 localUp = _baseLocalRot * Vector3.up;
+        var targetPos = _baseLocalPos + (IsSelected ? localUp * selectedYOffset : Vector3.zero);
+        
+        MoveAndRotateToLocal(targetPos, _baseLocalRot);
     }
 
-    public void MoveToLocal(Vector3 targetLocalPos)
+    public void MoveAndRotateToLocal(Vector3 targetLocalPos, Quaternion targetLocalRot)
     {
         if (_moveCo != null) StopCoroutine(_moveCo);
-        _moveCo = StartCoroutine(MoveRoutine(targetLocalPos));
+        _moveCo = StartCoroutine(MoveAndRotateRoutine(targetLocalPos, targetLocalRot));
     }
 
-    private IEnumerator MoveRoutine(Vector3 targetLocalPos)
+    private IEnumerator MoveAndRotateRoutine(Vector3 targetLocalPos, Quaternion targetLocalRot)
     {
-        var start = transform.localPosition;
+        var startPos = transform.localPosition;
+        var startRot = transform.localRotation;
         float t = 0f;
 
         while (t < moveDuration)
         {
             t += Time.deltaTime;
             float a = Mathf.Clamp01(t / Mathf.Max(0.01f, moveDuration));
-            transform.localPosition = Vector3.Lerp(start, targetLocalPos, a);
+            transform.localPosition = Vector3.Lerp(startPos, targetLocalPos, a);
+            transform.localRotation = Quaternion.Lerp(startRot, targetLocalRot, a);
             yield return null;
         }
 
         transform.localPosition = targetLocalPos;
+        transform.localRotation = targetLocalRot;
         _moveCo = null;
     }
 }

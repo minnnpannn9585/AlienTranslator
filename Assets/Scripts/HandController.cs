@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -14,8 +14,11 @@ public sealed class HandController : MonoBehaviour
     [Header("Current Round")]
     [SerializeField] private RoundConfig currentRound;
 
-    [Header("Layout")]
-    [SerializeField] private float cardSpacing = 0.6f;
+    [Header("Radial Layout")]
+    [SerializeField] private float radius = 8f;
+    [SerializeField] private float maxTotalAngle = 70f;
+    [SerializeField] private float anglePerCard = 15f;
+    [SerializeField] private Vector3 pivotCenter = new Vector3(0f, -9.5f, 0f);
 
     private readonly List<CardView> _hand = new();
     private readonly List<CardView> _selected = new();
@@ -178,20 +181,28 @@ public sealed class HandController : MonoBehaviour
     public void LayoutHand()
     {
         if (handRoot == null) return;
+        if (_hand.Count == 0) return;
 
-        float total = (_hand.Count - 1) * cardSpacing;
-        float startX = -total * 0.5f;
+        float totalAngle = Mathf.Min(maxTotalAngle, (_hand.Count - 1) * anglePerCard);
+        float startAngle = -totalAngle * 0.5f;
+        float angleStep = _hand.Count > 1 ? (totalAngle / (_hand.Count - 1)) : 0f;
 
         for (int i = 0; i < _hand.Count; i++)
         {
             var card = _hand[i];
             if (card == null) continue;
 
-            var basePos = new Vector3(startX + i * cardSpacing, 0f, 0f);
-            card.SetBaseLocalPosition(basePos);
+            float currentAngle = startAngle + i * angleStep;
+            float rad = currentAngle * Mathf.Deg2Rad;
 
-            var targetPos = basePos + (card.IsSelected ? new Vector3(0f, 0.35f, 0f) : Vector3.zero);
-            card.MoveToLocal(targetPos);
+            float x = Mathf.Sin(rad) * radius;
+            float y = Mathf.Cos(rad) * radius;
+
+            var basePos = pivotCenter + new Vector3(x, y, 0f);
+            var baseRot = Quaternion.Euler(0f, 0f, -currentAngle);
+
+            card.SetBaseTransform(basePos, baseRot);
+            card.SetSelected(card.IsSelected); // Automatically handles local direction movement
 
             card.transform.SetSiblingIndex(i);
         }
