@@ -2,10 +2,18 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public sealed class UiManager : MonoBehaviour
 {
+    public enum ResultType
+    {
+        Correct,
+        Wrong,
+        Timeout
+    }
+
     [Header("Stage Intro UI")]
     [Tooltip("Stage 1/2/3 intro objects. Each object has its own animation.")]
     [SerializeField] private List<GameObject> stageIntroRoots = new List<GameObject>();
@@ -32,7 +40,17 @@ public sealed class UiManager : MonoBehaviour
     [Header("Result Panels")]
     [SerializeField] private GameObject correctPanel;
     [SerializeField] private GameObject wrongPanel;
+    [SerializeField] private GameObject timeoutPanel;
+
+    [Header("Result Answer UI")]
+    [SerializeField] private GameObject resultAnswerRoot;
     [SerializeField] private Image resultAnswerImage;
+
+    [Header("Ending Panel")]
+    [SerializeField] private GameObject endingPanel;
+    [SerializeField] private Image endingImage;
+    [SerializeField] private TMP_Text endingTitle;
+    [SerializeField] private TMP_Text endingText;
 
     [Header("Correct Effect")]
     [Tooltip("Shown only when the answer is correct. Can contain ParticleSystem, animation, etc.")]
@@ -49,6 +67,9 @@ public sealed class UiManager : MonoBehaviour
     [SerializeField] private int warningFlashCount = 3;
     [SerializeField] private float warningFlashInterval = 0.12f;
 
+    [Header("Scene Navigation")]
+    [SerializeField] private int mainMenuSceneIndex = 0;
+
     private Coroutine _warningFlashCo;
     private GameObject _currentStageIntroRoot;
     private GameObject _currentStageTransitionRoot;
@@ -59,6 +80,7 @@ public sealed class UiManager : MonoBehaviour
     private void Awake()
     {
         HideResult();
+        HideEnding();
         HideSelectedCardText();
         HidePlayHint();
         HidePlayButton();
@@ -223,19 +245,30 @@ public sealed class UiManager : MonoBehaviour
         resultAnswerImage.gameObject.SetActive(sprite != null);
     }
 
-    public void ShowResult(bool correct)
+    public void ShowResult(ResultType resultType)
     {
         if (correctPanel != null)
-            correctPanel.SetActive(correct);
+            correctPanel.SetActive(resultType == ResultType.Correct);
 
         if (wrongPanel != null)
-            wrongPanel.SetActive(!correct);
+            wrongPanel.SetActive(resultType == ResultType.Wrong);
+
+        if (timeoutPanel != null)
+            timeoutPanel.SetActive(resultType == ResultType.Timeout);
 
         if (correctEffectRoot != null)
-            correctEffectRoot.SetActive(correct);
+            correctEffectRoot.SetActive(resultType == ResultType.Correct);
 
-        if (resultAnswerImage != null && resultAnswerImage.sprite != null)
-            resultAnswerImage.gameObject.SetActive(true);
+        bool hasAnswerSprite = resultAnswerImage != null && resultAnswerImage.sprite != null;
+
+        if (resultAnswerRoot != null)
+            resultAnswerRoot.SetActive(hasAnswerSprite);
+
+        if (resultAnswerImage != null)
+        {
+            resultAnswerImage.enabled = hasAnswerSprite;
+            resultAnswerImage.gameObject.SetActive(hasAnswerSprite);
+        }
     }
 
     public void HideResult()
@@ -246,8 +279,14 @@ public sealed class UiManager : MonoBehaviour
         if (wrongPanel != null)
             wrongPanel.SetActive(false);
 
+        if (timeoutPanel != null)
+            timeoutPanel.SetActive(false);
+
         if (correctEffectRoot != null)
             correctEffectRoot.SetActive(false);
+
+        if (resultAnswerRoot != null)
+            resultAnswerRoot.SetActive(false);
 
         if (resultAnswerImage != null)
         {
@@ -257,11 +296,45 @@ public sealed class UiManager : MonoBehaviour
         }
     }
 
-    public IEnumerator ShowResultForSeconds(bool correct, float seconds)
+    public void ShowEnding(EndingData endingData)
     {
-        ShowResult(correct);
-        yield return new WaitForSeconds(seconds);
-        HideResult();
+        if (endingPanel != null)
+            endingPanel.SetActive(true);
+
+        if (endingImage != null)
+            endingImage.sprite = endingData != null ? endingData.EndingImage : null;
+
+        if (endingTitle != null)
+            endingTitle.text = endingData != null ? endingData.EndingTitle : string.Empty;
+
+        if (endingText != null)
+            endingText.text = endingData != null ? endingData.EndingText : string.Empty;
+    }
+
+    public void HideEnding()
+    {
+        if (endingPanel != null)
+            endingPanel.SetActive(false);
+
+        if (endingImage != null)
+            endingImage.sprite = null;
+
+        if (endingTitle != null)
+            endingTitle.text = string.Empty;
+
+        if (endingText != null)
+            endingText.text = string.Empty;
+    }
+
+    public void OnClickBackToMainMenu()
+    {
+        if (mainMenuSceneIndex < 0 || mainMenuSceneIndex >= SceneManager.sceneCountInBuildSettings)
+        {
+            Debug.LogError("Main menu scene index is invalid.");
+            return;
+        }
+
+        SceneManager.LoadScene(mainMenuSceneIndex);
     }
 
     public void SetScore(int score)

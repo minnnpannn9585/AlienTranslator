@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3d377d85a2324f4b98f6e4fa0a95198, type: 3}
+  m_Name: EndingData4
+  m_EditorClassIdentifier: 
+  endingImage: {fileID: 21300000, guid: 228f9880343a56042820067be214f1c1, type: 3}
+  endingTitle: 'Hidden Ending: Love Triangle'
+  endingText: "The two highest representatives of both planets and their translator
+    end up together \u2014 somehow, improbably, gloriously so. Trade flows more smoothly
+    than ever, shared stations grow busier, and people stop questioning it quite
+    so much. Clips of three leaders kissing make the rounds across every screen \u2014
+    who wouldn\u2019t tune in?\n\nYou are still acting as the translator, which gets
+    more complicated. Messages, hugs and kisses all begin and end with you, sometimes
+    too easy to translate, sometimes extremely hard and odd. Anyhow, you are here
+    to join this family, not to break it apart, right?"
+  endingBgm: {fileID: 8300000, guid: 983c15dfddda3f9478fa4298c851da83, type: 3}

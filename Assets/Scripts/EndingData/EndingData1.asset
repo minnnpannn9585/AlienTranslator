@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c3d377d85a2324f4b98f6e4fa0a95198, type: 3}
+  m_Name: EndingData1
+  m_EditorClassIdentifier: 
+  endingImage: {fileID: 21300000, guid: bb1a2f40c1ce2c543b1f8116b6c72ff3, type: 3}
+  endingTitle: 'Happy Ending: World Peace'
+  endingText: "Peace holds between the two worlds, and cooperation settles in.  At
+    shared stations, people line up together, trading what they\u2019ve brought.
+    Somewhere in the crowd, the two leaders move side by side \u2014 newly married,
+    still adjusting, arguing over nothing and laughing a moment later \u2014 and
+    no one seems to mind.\n\nYou\u2019re officially named Chief Honorary Translator
+    of Two Worlds, complete with medals, ceremonies, and a frankly ridiculous number
+    of perks. You don\u2019t translate personally anymore \u2014 just open your door
+    and there they are, a whole crowd from both planets, mumbling, gesturing, crowding
+    in and elbowing for a chance to be your student."
+  endingBgm: {fileID: 8300000, guid: 361ff4c989cc3574db19445445e2bcc3, type: 3}

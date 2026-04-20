@@ -30,13 +30,9 @@ public sealed class HandController : MonoBehaviour
     private readonly List<CardView> _selected = new();
 
     public bool CanInteract { get; private set; }
-
     public int RequiredPlayCount => currentRound != null ? currentRound.RequiredCount : 0;
 
-    /// <summary>
-    /// 出牌结果事件：true=correct, false=wrong
-    /// </summary>
-    public event Action<bool> Played;
+    public event Action<bool, CardDefinition> Played;
 
     public void SetRound(RoundConfig round)
     {
@@ -56,11 +52,6 @@ public sealed class HandController : MonoBehaviour
             ClearSelection();
     }
 
-    /// <summary>
-    /// 单选逻辑：最多只允许选中 1 张。
-    /// - 点已选中牌：取消选择
-    /// - 点未选中牌：取消之前选中 -> 选中新牌
-    /// </summary>
     public void ToggleSelect(CardView card)
     {
         if (!CanInteract) return;
@@ -74,7 +65,6 @@ public sealed class HandController : MonoBehaviour
             return;
         }
 
-        // 选中新牌前，取消所有历史选中（保证单选）
         for (int i = 0; i < _selected.Count; i++)
         {
             var prev = _selected[i];
@@ -91,7 +81,6 @@ public sealed class HandController : MonoBehaviour
         UpdateSelectedCardTextUi();
     }
 
-    // 供 UI Button 直接绑定调用
     public void PlaySelected()
     {
         if (!CanInteract) return;
@@ -107,10 +96,12 @@ public sealed class HandController : MonoBehaviour
 
         if (currentRound == null) return;
 
-        // 数量不对：直接判错并通知
+        var selectedCard = _selected[0];
+        var selectedDefinition = selectedCard != null ? selectedCard.Definition : null;
+
         if (!currentRound.IsSelectionCountValid(_selected.Count))
         {
-            Played?.Invoke(false);
+            Played?.Invoke(false, selectedDefinition);
             return;
         }
 
@@ -122,11 +113,10 @@ public sealed class HandController : MonoBehaviour
             if (ui != null)
                 ui.HidePlayButton();
 
-            Played?.Invoke(false);
+            Played?.Invoke(false, selectedDefinition);
             return;
         }
 
-        // 正确：移除已出的牌
         foreach (var c in _selected.ToArray())
         {
             _hand.Remove(c);
@@ -140,7 +130,7 @@ public sealed class HandController : MonoBehaviour
         if (ui != null)
             ui.HidePlayButton();
 
-        Played?.Invoke(true);
+        Played?.Invoke(true, selectedDefinition);
     }
 
     public void ClearHand()
@@ -164,9 +154,6 @@ public sealed class HandController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 按当前回合配置发固定手牌（RoundConfig.dealtCards）。
-    /// </summary>
     public void DealCurrentRound()
     {
         if (currentRound == null)
@@ -252,8 +239,7 @@ public sealed class HandController : MonoBehaviour
             var baseRot = Quaternion.Euler(0f, 0f, -currentAngle);
 
             card.SetBaseTransform(basePos, baseRot);
-            card.SetSelected(card.IsSelected); // Automatically handles local direction movement
-
+            card.SetSelected(card.IsSelected);
             card.transform.SetSiblingIndex(i);
         }
     }

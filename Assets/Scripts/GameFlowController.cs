@@ -30,16 +30,34 @@ public sealed class GameFlowController : MonoBehaviour
     [Tooltip("How long to wait after character objects appear before dealing cards.")]
     [SerializeField] private float characterShowSeconds = 2f;
 
+    [Header("Endings")]
+    [SerializeField] private EndingData ending1;
+    [SerializeField] private EndingData ending2;
+    [SerializeField] private EndingData ending3;
+    [SerializeField] private EndingData ending4;
+    [SerializeField] private EndingData ending5;
+
+    [Header("BGM")]
+    [SerializeField] private AudioSource bgmAudioSource;
+
+    private AudioClip _gameBgmClip;
+    private float _gameBgmTime;
+
     private int _roundIndex = -1;
     private int _currentStage = 0;
     private int _roundInCurrentStage = 0;
     private int _score;
+    private int _usedAngryCardCount;
+
+    private CardDefinition _lastPlayedCard;
 
     private Coroutine _stageFlowCo;
     private Coroutine _roundFlowCo;
     private Coroutine _timerCo;
 
     private bool _roundInProgress;
+    private bool _gameEnded;
+
     private RoundConfig _activeRound;
 
     private readonly List<GameObject> _spawnedCharacterAObjects = new();
@@ -62,21 +80,45 @@ public sealed class GameFlowController : MonoBehaviour
         ClearSpawnedCharacters();
 
         _score = initialScore;
+        _usedAngryCardCount = 0;
+        _lastPlayedCard = null;
+        _gameEnded = false;
+
+        RestoreGameBgm();
 
         if (ui != null)
         {
             ui.HideTimer();
+            ui.HideEnding();
             ui.SetScore(_score);
         }
 
         StartNextStage();
     }
 
+    private void RestoreGameBgm()
+    {
+        if (bgmAudioSource == null)
+            return;
+
+        if (_gameBgmClip == null)
+            _gameBgmClip = bgmAudioSource.clip;
+
+        bgmAudioSource.clip = _gameBgmClip;
+        bgmAudioSource.loop = true;
+
+        if (!bgmAudioSource.isPlaying)
+            bgmAudioSource.Play();
+    }
+
     private void StartNextStage()
     {
+        if (_gameEnded)
+            return;
+
         if (_currentStage >= totalStages)
         {
-            Debug.Log("Game Finished.");
+            TriggerFinalEnding();
             return;
         }
 
@@ -135,6 +177,9 @@ public sealed class GameFlowController : MonoBehaviour
 
     private void StartNextRoundFlow()
     {
+        if (_gameEnded)
+            return;
+
         if (_roundFlowCo != null)
             StopCoroutine(_roundFlowCo);
 
@@ -155,7 +200,6 @@ public sealed class GameFlowController : MonoBehaviour
         StopTimer();
         hand.SetInteractable(false);
         hand.ClearHand();
-
         ClearSpawnedCharacters();
 
         if (ui != null)
@@ -166,8 +210,7 @@ public sealed class GameFlowController : MonoBehaviour
 
         if (_roundIndex >= rounds.Count)
         {
-            Debug.Log("All rounds finished.");
-            _roundInProgress = false;
+            TriggerFinalEnding();
             yield break;
         }
 
@@ -200,16 +243,23 @@ public sealed class GameFlowController : MonoBehaviour
         StartTimer();
     }
 
-    private void OnHandPlayed(bool correct)
+    private void OnHandPlayed(bool correct, CardDefinition playedCard)
     {
         StopTimer();
 
         if (ui != null)
             ui.HideTimer();
 
-        var correctCard = _activeRound != null ? _activeRound.GetCorrectCardDefinition() : null;
-        if (ui != null)
-            ui.SetResultAnswerSprite(correctCard != null ? correctCard.Artwork : null);
+        _lastPlayedCard = playedCard;
+
+        if (playedCard != null && playedCard.IsAngryCard)
+            _usedAngryCardCount++;
+
+        if (_usedAngryCardCount >= 6)
+        {
+            TriggerEnding(ending3);
+            return;
+        }
 
         if (correct)
             SfxManager.Instance?.PlayCorrect();
@@ -225,18 +275,41 @@ public sealed class GameFlowController : MonoBehaviour
             _roundFlowCo = null;
         }
 
-        StartCoroutine(ShowResultThenContinue(correct));
+        bool isLastRound = _roundIndex >= rounds.Count - 1;
+        if (isLastRound)
+        {
+            TriggerFinalEnding();
+            return;
+        }
+
+        var correctCard = _activeRound != null ? _activeRound.GetCorrectCardDefinition() : null;
+        if (ui != null)
+            ui.SetResultAnswerSprite(correctCard != null ? correctCard.Artwork : null);
+
+        StartCoroutine(ShowResultThenContinue(correct ? UiManager.ResultType.Correct : UiManager.ResultType.Wrong));
     }
 
-    private IEnumerator ShowResultThenContinue(bool correct)
+    private IEnumerator ShowResultThenContinue(UiManager.ResultType resultType)
     {
         if (hand != null)
             hand.SetInteractable(false);
 
         if (ui != null)
-            yield return ui.ShowResultForSeconds(correct, resultPanelDurationSeconds);
-        else
+        {
+            ui.ShowResult(resultType);
             yield return new WaitForSeconds(resultPanelDurationSeconds);
+            ui.HideResult();
+        }
+        else
+        {
+            yield return new WaitForSeconds(resultPanelDurationSeconds);
+        }
+
+        if (_score <= 0)
+        {
+            TriggerEnding(ending2);
+            yield break;
+        }
 
         _roundInProgress = false;
 
@@ -279,16 +352,23 @@ public sealed class GameFlowController : MonoBehaviour
             yield return null;
         }
 
+        _timerCo = null;
+
         if (ui != null)
         {
             ui.SetTimer(0f);
             ui.HideTimer();
         }
 
-        StopTimer();
-
         ApplyWrongPenalty();
         SfxManager.Instance?.PlayWrong();
+
+        bool isLastRound = _roundIndex >= rounds.Count - 1;
+        if (isLastRound)
+        {
+            TriggerFinalEnding();
+            yield break;
+        }
 
         var correctCard = _activeRound != null ? _activeRound.GetCorrectCardDefinition() : null;
         if (ui != null)
@@ -300,8 +380,7 @@ public sealed class GameFlowController : MonoBehaviour
             _roundFlowCo = null;
         }
 
-        yield return ShowResultThenContinue(false);
-        _timerCo = null;
+        yield return ShowResultThenContinue(UiManager.ResultType.Timeout);
     }
 
     private void ApplyWrongPenalty()
@@ -312,6 +391,93 @@ public sealed class GameFlowController : MonoBehaviour
         {
             ui.SetScore(_score);
             ui.FlashWarningIcon();
+        }
+    }
+
+    private void TriggerFinalEnding()
+    {
+        if (_score <= 0)
+        {
+            TriggerEnding(ending2);
+            return;
+        }
+
+        if (_usedAngryCardCount >= 6)
+        {
+            TriggerEnding(ending3);
+            return;
+        }
+
+        int lastId = _lastPlayedCard != null ? _lastPlayedCard.Id : -1;
+
+        if (lastId == 105)
+        {
+            TriggerEnding(ending4);
+            return;
+        }
+
+        if (lastId == 103)
+        {
+            TriggerEnding(ending1);
+            return;
+        }
+
+        if (lastId == 104 || lastId == 102 || lastId == 101 || lastId == 100)
+        {
+            TriggerEnding(ending5);
+            return;
+        }
+
+        TriggerEnding(ending5);
+    }
+
+    private void TriggerEnding(EndingData endingData)
+    {
+        if (_gameEnded)
+            return;
+
+        _gameEnded = true;
+        _roundInProgress = false;
+
+        StopTimer();
+
+        if (_stageFlowCo != null)
+        {
+            StopCoroutine(_stageFlowCo);
+            _stageFlowCo = null;
+        }
+
+        if (_roundFlowCo != null)
+        {
+            StopCoroutine(_roundFlowCo);
+            _roundFlowCo = null;
+        }
+
+        if (hand != null)
+            hand.SetInteractable(false);
+
+        ClearSpawnedCharacters();
+
+        if (bgmAudioSource != null)
+        {
+            if (_gameBgmClip == null)
+                _gameBgmClip = bgmAudioSource.clip;
+
+            _gameBgmTime = bgmAudioSource.time;
+
+            if (endingData != null && endingData.EndingBgm != null)
+            {
+                bgmAudioSource.clip = endingData.EndingBgm;
+                bgmAudioSource.loop = false;
+                bgmAudioSource.Play();
+            }
+        }
+
+        if (ui != null)
+        {
+            ui.HideTimer();
+            ui.HideResult();
+            ui.ShowEnding(endingData);
         }
     }
 
