@@ -40,4 +40,13 @@ public sealed class RoundConfig : ScriptableObject
             .OrderBy(x => x)
             .SequenceEqual(correctCardIds.OrderBy(x => x));
     }
+
+    public CardDefinition GetCorrectCardDefinition()
+    {
+        if (correctCardIds == null || correctCardIds.Count == 0)
+            return null;
+
+        int correctId = correctCardIds[0];
+        return dealtCards.FirstOrDefault(card => card != null && card.Id == correctId);
+    }
 }

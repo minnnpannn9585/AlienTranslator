@@ -32,6 +32,7 @@ public sealed class UiManager : MonoBehaviour
     [Header("Result Panels")]
     [SerializeField] private GameObject correctPanel;
     [SerializeField] private GameObject wrongPanel;
+    [SerializeField] private Image resultAnswerImage;
 
     [Header("Correct Effect")]
     [Tooltip("Shown only when the answer is correct. Can contain ParticleSystem, animation, etc.")]
@@ -212,6 +213,16 @@ public sealed class UiManager : MonoBehaviour
             playButtonRoot.SetActive(false);
     }
 
+    public void SetResultAnswerSprite(Sprite sprite)
+    {
+        if (resultAnswerImage == null)
+            return;
+
+        resultAnswerImage.sprite = sprite;
+        resultAnswerImage.enabled = sprite != null;
+        resultAnswerImage.gameObject.SetActive(sprite != null);
+    }
+
     public void ShowResult(bool correct)
     {
         if (correctPanel != null)
@@ -222,6 +233,9 @@ public sealed class UiManager : MonoBehaviour
 
         if (correctEffectRoot != null)
             correctEffectRoot.SetActive(correct);
+
+        if (resultAnswerImage != null && resultAnswerImage.sprite != null)
+            resultAnswerImage.gameObject.SetActive(true);
     }
 
     public void HideResult()
@@ -234,6 +248,13 @@ public sealed class UiManager : MonoBehaviour
 
         if (correctEffectRoot != null)
             correctEffectRoot.SetActive(false);
+
+        if (resultAnswerImage != null)
+        {
+            resultAnswerImage.sprite = null;
+            resultAnswerImage.enabled = false;
+            resultAnswerImage.gameObject.SetActive(false);
+        }
     }
 
     public IEnumerator ShowResultForSeconds(bool correct, float seconds)
