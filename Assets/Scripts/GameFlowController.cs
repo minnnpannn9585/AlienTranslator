@@ -96,6 +96,7 @@ public sealed class GameFlowController : MonoBehaviour
             hand.ClearHand();
         }
 
+        // 新 stage 开始前清理上一轮残留的角色动画物体
         ClearSpawnedCharacters();
 
         if (ui != null)
@@ -155,6 +156,8 @@ public sealed class GameFlowController : MonoBehaviour
         StopTimer();
         hand.SetInteractable(false);
         hand.ClearHand();
+
+        // 下回合真正开始时，再清理上一回合的角色动画物体
         ClearSpawnedCharacters();
 
         if (ui != null)
@@ -228,8 +231,7 @@ public sealed class GameFlowController : MonoBehaviour
         if (hand != null)
             hand.SetInteractable(false);
 
-        ClearSpawnedCharacters();
-
+        // 这里不再清理角色动画物体，让它保留到下一回合开始
         if (ui != null)
             yield return ui.ShowResultForSeconds(correct, resultPanelDurationSeconds);
         else
