@@ -8,9 +8,11 @@ public sealed class CardDefinition : ScriptableObject
     [SerializeField] private Sprite artwork;
     [TextArea(2, 5)]
     [SerializeField] private string contentText;
+    [SerializeField] private bool isAngryCard;
 
     public int Id => id;
     public string DisplayName => displayName;
     public Sprite Artwork => artwork;
     public string ContentText => contentText;
+    public bool IsAngryCard => isAngryCard;
 }
