@@ -15,14 +15,19 @@ public sealed class RoundConfig : ScriptableObject
     [Tooltip("Correct answer card IDs. Order does not matter.")]
     [SerializeField] private List<int> correctCardIds = new List<int>();
 
-    [Header("Character Animation Prefabs")]
-    [Tooltip("Prefabs to instantiate for this round's character animation.")]
+    [Header("Character A Animation Prefabs")]
+    [Tooltip("Prefabs to instantiate for character A in this round.")]
     [SerializeField] private List<GameObject> characterPrefabs = new List<GameObject>();
+
+    [Header("Character B Animation Prefabs")]
+    [Tooltip("Prefabs to instantiate for character B in this round.")]
+    [SerializeField] private List<GameObject> characterBPrefabs = new List<GameObject>();
 
     public IReadOnlyList<CardDefinition> DealtCards => dealtCards;
     public int RequiredCount => requiredCount;
     public IReadOnlyList<int> CorrectCardIds => correctCardIds;
     public IReadOnlyList<GameObject> CharacterPrefabs => characterPrefabs;
+    public IReadOnlyList<GameObject> CharacterBPrefabs => characterBPrefabs;
 
     public bool IsSelectionCountValid(int selectedCount) => selectedCount == requiredCount;
 

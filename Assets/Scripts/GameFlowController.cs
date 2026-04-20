@@ -10,29 +10,40 @@ public sealed class GameFlowController : MonoBehaviour
     [Header("Rounds (fixed data)")]
     [SerializeField] private List<RoundConfig> rounds = new List<RoundConfig>();
 
-    [Header("Input")]
-    [SerializeField] private KeyCode startKey = KeyCode.Space;
+    [Header("Stage Settings")]
+    [SerializeField] private int totalStages = 3;
+    [SerializeField] private int roundsPerStage = 6;
+
+    [Header("Score")]
+    [SerializeField] private int initialScore = 7;
 
     [Header("Result")]
-    [SerializeField] private float resultPanelDurationSeconds = 3f;
+    [SerializeField] private float resultPanelDurationSeconds = 2f;
 
     [Header("Timer")]
     [SerializeField] private float roundTimeSeconds = 10f;
 
-    [Header("Character Animation")]
-    [SerializeField] private Transform characterRoot;
+    [Header("Character Animation Roots")]
+    [SerializeField] private Transform characterARoot;
+    [SerializeField] private Transform characterBRoot;
 
     [Tooltip("How long to wait after character objects appear before dealing cards.")]
     [SerializeField] private float characterShowSeconds = 2f;
 
     private int _roundIndex = -1;
+    private int _currentStage = 0;
+    private int _roundInCurrentStage = 0;
+    private int _score;
+
+    private Coroutine _stageFlowCo;
     private Coroutine _roundFlowCo;
     private Coroutine _timerCo;
 
     private bool _roundInProgress;
     private RoundConfig _activeRound;
 
-    private readonly List<GameObject> _spawnedCharacters = new();
+    private readonly List<GameObject> _spawnedCharacterAObjects = new();
+    private readonly List<GameObject> _spawnedCharacterBObjects = new();
 
     private void OnEnable()
     {
@@ -49,12 +60,77 @@ public sealed class GameFlowController : MonoBehaviour
     private void Start()
     {
         ClearSpawnedCharacters();
+
+        _score = initialScore;
+
+        if (ui != null)
+        {
+            ui.HideTimer();
+            ui.SetScore(_score);
+        }
+
+        StartNextStage();
     }
 
-    private void Update()
+    private void StartNextStage()
     {
-        if (Input.GetKeyDown(startKey) && !_roundInProgress)
-            StartNextRoundFlow();
+        if (_currentStage >= totalStages)
+        {
+            Debug.Log("Game Finished.");
+            return;
+        }
+
+        if (_stageFlowCo != null)
+            StopCoroutine(_stageFlowCo);
+
+        _stageFlowCo = StartCoroutine(RunStageIntroThenBegin());
+    }
+
+    private IEnumerator RunStageIntroThenBegin()
+    {
+        StopTimer();
+
+        if (hand != null)
+        {
+            hand.SetInteractable(false);
+            hand.ClearHand();
+        }
+
+        ClearSpawnedCharacters();
+
+        if (ui != null)
+        {
+            ui.HideTimer();
+            ui.HideResult();
+            ui.SetTimer(roundTimeSeconds);
+            ui.PlayStageIntro(_currentStage + 1);
+        }
+
+        yield return WaitForAnyKeyDown();
+
+        if (ui != null)
+        {
+            ui.HideCurrentStageIntro();
+            ui.PlayStageTransition(_currentStage + 1);
+        }
+
+        SfxManager.Instance?.PlayStageIntro();
+
+        yield return new WaitForSeconds(ui != null ? ui.StageTransitionDurationSeconds : 1f);
+
+        if (ui != null)
+            ui.HideStageTransition();
+
+        _roundInCurrentStage = 0;
+
+        StartNextRoundFlow();
+        _stageFlowCo = null;
+    }
+
+    private IEnumerator WaitForAnyKeyDown()
+    {
+        while (!Input.anyKeyDown)
+            yield return null;
     }
 
     private void StartNextRoundFlow()
@@ -81,35 +157,44 @@ public sealed class GameFlowController : MonoBehaviour
         hand.ClearHand();
         ClearSpawnedCharacters();
 
-        _roundIndex = (_roundIndex + 1) % rounds.Count;
+        if (ui != null)
+            ui.HideTimer();
+
+        _roundIndex++;
+        _roundInCurrentStage++;
+
+        if (_roundIndex >= rounds.Count)
+        {
+            Debug.Log("All rounds finished.");
+            _roundInProgress = false;
+            yield break;
+        }
+
         _activeRound = rounds[_roundIndex];
 
         if (_activeRound == null)
         {
             Debug.LogError($"{nameof(GameFlowController)}: round is null.");
+            _roundInProgress = false;
             yield break;
         }
 
-        // 1. Round 文字动画
         if (ui != null)
         {
             ui.HideResult();
             ui.SetTimer(roundTimeSeconds);
-            ui.PlayRoundIntro(_roundIndex + 1);
         }
 
-        float introWait = ui != null ? ui.RoundIntroDurationSeconds : 2f;
-        yield return new WaitForSeconds(introWait);
-
-        // 2. 生成本轮角色动画物体，并保持到回合结束
         SpawnRoundCharacters(_activeRound);
 
-        // 3. 等待 2 秒后开始发牌
         yield return new WaitForSeconds(characterShowSeconds);
 
         hand.SetRound(_activeRound);
         hand.DealCurrentRound();
         hand.SetInteractable(true);
+
+        if (ui != null)
+            ui.ShowTimer();
 
         StartTimer();
     }
@@ -118,21 +203,31 @@ public sealed class GameFlowController : MonoBehaviour
     {
         StopTimer();
 
+        if (ui != null)
+            ui.HideTimer();
+
+        if (correct)
+            SfxManager.Instance?.PlayCorrect();
+        else
+            SfxManager.Instance?.PlayWrong();
+
+        if (!correct)
+            ApplyWrongPenalty();
+
         if (_roundFlowCo != null)
         {
             StopCoroutine(_roundFlowCo);
             _roundFlowCo = null;
         }
 
-        StartCoroutine(ShowResultThenNextRound(correct));
+        StartCoroutine(ShowResultThenContinue(correct));
     }
 
-    private IEnumerator ShowResultThenNextRound(bool correct)
+    private IEnumerator ShowResultThenContinue(bool correct)
     {
         if (hand != null)
             hand.SetInteractable(false);
 
-        // 回合结束时再清理本轮角色物体
         ClearSpawnedCharacters();
 
         if (ui != null)
@@ -141,7 +236,16 @@ public sealed class GameFlowController : MonoBehaviour
             yield return new WaitForSeconds(resultPanelDurationSeconds);
 
         _roundInProgress = false;
-        StartNextRoundFlow();
+
+        if (_roundInCurrentStage >= roundsPerStage)
+        {
+            _currentStage++;
+            StartNextStage();
+        }
+        else
+        {
+            StartNextRoundFlow();
+        }
     }
 
     private void StartTimer()
@@ -173,9 +277,15 @@ public sealed class GameFlowController : MonoBehaviour
         }
 
         if (ui != null)
+        {
             ui.SetTimer(0f);
+            ui.HideTimer();
+        }
 
         StopTimer();
+
+        ApplyWrongPenalty();
+        SfxManager.Instance?.PlayWrong();
 
         if (_roundFlowCo != null)
         {
@@ -183,36 +293,68 @@ public sealed class GameFlowController : MonoBehaviour
             _roundFlowCo = null;
         }
 
-        yield return ShowResultThenNextRound(false);
+        yield return ShowResultThenContinue(false);
         _timerCo = null;
+    }
+
+    private void ApplyWrongPenalty()
+    {
+        _score = Mathf.Max(0, _score - 1);
+
+        if (ui != null)
+        {
+            ui.SetScore(_score);
+            ui.FlashWarningIcon();
+        }
     }
 
     private void SpawnRoundCharacters(RoundConfig round)
     {
         ClearSpawnedCharacters();
 
-        if (round == null || round.CharacterPrefabs == null)
+        if (round == null)
             return;
 
-        for (int i = 0; i < round.CharacterPrefabs.Count; i++)
+        SpawnCharacterGroup(round.CharacterPrefabs, characterARoot, _spawnedCharacterAObjects);
+        SpawnCharacterGroup(round.CharacterBPrefabs, characterBRoot, _spawnedCharacterBObjects);
+    }
+
+    private static void SpawnCharacterGroup(
+        IReadOnlyList<GameObject> prefabs,
+        Transform root,
+        List<GameObject> spawnedObjects)
+    {
+        if (prefabs == null)
+            return;
+
+        for (int i = 0; i < prefabs.Count; i++)
         {
-            var prefab = round.CharacterPrefabs[i];
+            var prefab = prefabs[i];
             if (prefab == null) continue;
 
-            var instance = Instantiate(prefab, characterRoot);
-            _spawnedCharacters.Add(instance);
+            var instance = root != null
+                ? Instantiate(prefab, root)
+                : Instantiate(prefab);
+
+            spawnedObjects.Add(instance);
         }
     }
 
     private void ClearSpawnedCharacters()
     {
-        for (int i = 0; i < _spawnedCharacters.Count; i++)
+        ClearSpawnedGroup(_spawnedCharacterAObjects);
+        ClearSpawnedGroup(_spawnedCharacterBObjects);
+    }
+
+    private static void ClearSpawnedGroup(List<GameObject> spawnedObjects)
+    {
+        for (int i = 0; i < spawnedObjects.Count; i++)
         {
-            var go = _spawnedCharacters[i];
+            var go = spawnedObjects[i];
             if (go != null)
                 Destroy(go);
         }
 
-        _spawnedCharacters.Clear();
+        spawnedObjects.Clear();
     }
 }

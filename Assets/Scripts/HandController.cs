@@ -7,6 +7,7 @@ public sealed class HandController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Transform handRoot;
+    [SerializeField] private UiManager ui;
 
     [Header("Factory")]
     [SerializeField] private CardView cardPrefab;
@@ -19,6 +20,11 @@ public sealed class HandController : MonoBehaviour
     [SerializeField] private float maxTotalAngle = 70f;
     [SerializeField] private float anglePerCard = 15f;
     [SerializeField] private Vector3 pivotCenter = new Vector3(0f, -9.5f, 0f);
+
+    [Header("Random Offset")]
+    [SerializeField] private float randomPositionOffsetX = 0.15f;
+    [SerializeField] private float randomPositionOffsetY = 0.08f;
+    [SerializeField] private float randomRotationOffsetZ = 3f;
 
     private readonly List<CardView> _hand = new();
     private readonly List<CardView> _selected = new();
@@ -64,6 +70,7 @@ public sealed class HandController : MonoBehaviour
         {
             _selected.Remove(card);
             card.SetSelected(false);
+            UpdateSelectedCardTextUi();
             return;
         }
 
@@ -77,13 +84,27 @@ public sealed class HandController : MonoBehaviour
 
         _selected.Add(card);
         card.SetSelected(true);
+
+        if (ui != null)
+            ui.HidePlayHint();
+
+        UpdateSelectedCardTextUi();
     }
 
     // 供 UI Button 直接绑定调用
     public void PlaySelected()
     {
         if (!CanInteract) return;
-        if (_selected.Count == 0) return;
+
+        SfxManager.Instance?.PlayPlayButton();
+
+        if (_selected.Count == 0)
+        {
+            if (ui != null)
+                ui.ShowPlayHint();
+            return;
+        }
+
         if (currentRound == null) return;
 
         // 数量不对：直接判错并通知
@@ -98,6 +119,9 @@ public sealed class HandController : MonoBehaviour
 
         if (!correct)
         {
+            if (ui != null)
+                ui.HidePlayButton();
+
             Played?.Invoke(false);
             return;
         }
@@ -111,6 +135,10 @@ public sealed class HandController : MonoBehaviour
 
         _selected.Clear();
         LayoutHand();
+        UpdateSelectedCardTextUi();
+
+        if (ui != null)
+            ui.HidePlayButton();
 
         Played?.Invoke(true);
     }
@@ -127,6 +155,13 @@ public sealed class HandController : MonoBehaviour
 
         _hand.Clear();
         LayoutHand();
+        UpdateSelectedCardTextUi();
+
+        if (ui != null)
+        {
+            ui.HidePlayHint();
+            ui.HidePlayButton();
+        }
     }
 
     /// <summary>
@@ -172,10 +207,25 @@ public sealed class HandController : MonoBehaviour
             card.Initialize(this);
             card.SetDefinition(def);
 
+            Vector3 randomOffset = new Vector3(
+                UnityEngine.Random.Range(-randomPositionOffsetX, randomPositionOffsetX),
+                UnityEngine.Random.Range(-randomPositionOffsetY, randomPositionOffsetY),
+                0f);
+
+            float randomRotZ = UnityEngine.Random.Range(-randomRotationOffsetZ, randomRotationOffsetZ);
+            card.SetRandomOffset(randomOffset, randomRotZ);
+
             _hand.Add(card);
         }
 
         LayoutHand();
+        UpdateSelectedCardTextUi();
+
+        if (ui != null)
+        {
+            ui.HidePlayHint();
+            ui.ShowPlayButton();
+        }
     }
 
     public void LayoutHand()
@@ -208,12 +258,26 @@ public sealed class HandController : MonoBehaviour
         }
     }
 
+    private void UpdateSelectedCardTextUi()
+    {
+        if (ui == null) return;
+
+        if (_selected.Count == 0 || _selected[0] == null || _selected[0].Definition == null)
+        {
+            ui.HideSelectedCardText();
+            return;
+        }
+
+        ui.ShowSelectedCardText(_selected[0].Definition.ContentText);
+    }
+
     private void ClearSelection()
     {
         foreach (var c in _selected)
             if (c != null) c.SetSelected(false);
 
         _selected.Clear();
+        UpdateSelectedCardTextUi();
     }
 
     private void AutoRegisterCardsUnderRoot()

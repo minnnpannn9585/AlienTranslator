@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 14c4827014e523f4eaf0cff7c58c723b, type: 3}
+  m_Name: r22
+  m_EditorClassIdentifier: 
+  dealtCards:
+  - {fileID: 11400000, guid: 5a86088764628b9438ca7a457f705b27, type: 2}
+  - {fileID: 11400000, guid: f02f80e2c9240514e9e0786cafe64e9f, type: 2}
+  - {fileID: 11400000, guid: 2cec0c483c6d38b4181a9de240d6b61c, type: 2}
+  - {fileID: 11400000, guid: b53b4723cc289bc45a387e07e6e37630, type: 2}
+  - {fileID: 11400000, guid: d60c5f9aa9f332a4dbff944c451a35f2, type: 2}
+  - {fileID: 11400000, guid: aebbae570db1a714ab9fd236d2e9ad6a, type: 2}
+  requiredCount: 1
+  correctCardIds: 24000000
+  characterPrefabs:
+  - {fileID: 5550885600894137063, guid: 621f8c940e46a0d44b8acbb47cfd3da1, type: 3}
+  characterBPrefabs:
+  - {fileID: 4817265710144088921, guid: ead686a90667111469b505fc82392fcf, type: 3}
