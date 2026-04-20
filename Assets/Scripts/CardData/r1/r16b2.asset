@@ -16,3 +16,4 @@ MonoBehaviour:
   displayName: r14b1
   artwork: {fileID: 21300000, guid: b0455ae4721554644a96bf70997cd595, type: 3}
   contentText: Shut up!
+  isAngryCard: 1

@@ -16,3 +16,4 @@ MonoBehaviour:
   displayName: r11a4
   artwork: {fileID: 21300000, guid: a3096d37b58fa914e81c60e9f5080442, type: 3}
   contentText: Maybe, we need to talk
+  isAngryCard: 1
