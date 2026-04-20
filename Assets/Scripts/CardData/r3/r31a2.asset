@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 71
   displayName: r21a2
   artwork: {fileID: 21300000, guid: 4be8b9a6026e5c544aaee28a9de74fc1, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: Marriage alliance? Get out!
+  isAngryCard: 0

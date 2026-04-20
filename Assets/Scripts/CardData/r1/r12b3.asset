@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 7
   displayName: r12b3
   artwork: {fileID: 21300000, guid: f21cadcf721df41408965e63aacf125a, type: 3}
-  contentText: You gotta be kidding me
+  contentText: You gotta be kidding me.
+  isAngryCard: 0

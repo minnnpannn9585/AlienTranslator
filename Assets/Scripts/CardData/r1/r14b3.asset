@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 15
   displayName: r14b3
   artwork: {fileID: 21300000, guid: 342bab96347560d428316030bcec12db, type: 3}
-  contentText: We need this land badly too
+  contentText: We need this land badly too.
+  isAngryCard: 0

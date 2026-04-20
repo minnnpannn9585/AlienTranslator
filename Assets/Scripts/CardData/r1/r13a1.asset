@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 9
   displayName: r13a1
   artwork: {fileID: 21300000, guid: a9f21e7f9bff24845a11f8ed91dd0868, type: 3}
-  contentText: This place is our home planet:((
+  contentText: This place is our home planet :((
+  isAngryCard: 0

@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 39
   displayName: r23a3
   artwork: {fileID: 21300000, guid: aa10e14306e45fd42b3fc0aa06f43df4, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: Do I look like care?
+  isAngryCard: 0

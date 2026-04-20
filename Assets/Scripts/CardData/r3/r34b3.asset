@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 90
   displayName: r24b3
   artwork: {fileID: 21300000, guid: a93d9af38e89f884e8558dcf1ddf1a01, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: How are you still alive?
+  isAngryCard: 0

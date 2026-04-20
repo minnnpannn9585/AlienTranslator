@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 85
   displayName: r23a4
   artwork: {fileID: 21300000, guid: a0f4c911e31f78b4597d3269d1a06d4e, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: But children should not be bound.
+  isAngryCard: 0

@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 44
   displayName: r24b2
   artwork: {fileID: 21300000, guid: dea5b6fafb8d8884f9b43bc1066b7a93, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: You're always one step ahead, pal.
+  isAngryCard: 0

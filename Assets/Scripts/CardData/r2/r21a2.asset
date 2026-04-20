@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 26
   displayName: r21a2
   artwork: {fileID: 21300000, guid: cf6fc2f0c4fde3447aab11dbbed4c4eb, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: Half a half?
+  isAngryCard: 0

@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 82
   displayName: r23a1
   artwork: {fileID: 21300000, guid: d51f067c8ff06324395333485ada1746, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: Your son is too ugly!
+  isAngryCard: 0

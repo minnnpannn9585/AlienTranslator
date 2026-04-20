@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 11
   displayName: r13a3
   artwork: {fileID: 21300000, guid: cc62b942aefd4fc47b2fe9e2797844a0, type: 3}
-  contentText: "you\u2018re pathetic..."
+  contentText: "You\u2018re pathetic..."
+  isAngryCard: 0

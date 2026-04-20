@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 104
   displayName: r26b5
   artwork: {fileID: 21300000, guid: 62a5adfbf5af7424fa01c0ff286e9ee0, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: I am a banana.
+  isAngryCard: 0

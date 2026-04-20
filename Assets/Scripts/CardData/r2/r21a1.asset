@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 25
   displayName: r21a1
   artwork: {fileID: 21300000, guid: bc0274965e65b79418fee41a6d2c0734, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: You're being unreasonable.
+  isAngryCard: 0

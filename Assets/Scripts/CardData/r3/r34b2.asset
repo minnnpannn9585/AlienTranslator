@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 89
   displayName: r24b2
   artwork: {fileID: 21300000, guid: 3e2d65eb98db436499ab6995a7133730, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: You look like a hairless monkey.
+  isAngryCard: 0

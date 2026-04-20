@@ -14,5 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 51
   displayName: r25a3
-  artwork: {fileID: 21300000, guid: 7cc51ee55af5ea343bf694cdbb11f03a, type: 3}
-  contentText: Bitch! That's our place~
+  artwork: {fileID: 21300000, guid: 6021c4275dfc4104c98ec9069719775e, type: 3}
+  contentText: You wish!
+  isAngryCard: 0

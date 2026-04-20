@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 70
   displayName: r21a1
   artwork: {fileID: 21300000, guid: 97ee39f1b5fa3014a8b37ec3e7a99528, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: I won't have my daughter sad.
+  isAngryCard: 0

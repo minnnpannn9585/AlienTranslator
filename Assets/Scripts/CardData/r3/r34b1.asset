@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 88
   displayName: r24b1
   artwork: {fileID: 21300000, guid: 2f973616d9f2cc44eabe1a06886ee71f, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: 'You smell like my grandpa''s bound. '
+  isAngryCard: 0

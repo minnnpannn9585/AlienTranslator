@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 35
   displayName: r22b5
   artwork: {fileID: 21300000, guid: 3fd5a116e866f9745aa6cba1d1a2ebd1, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: You'll be sorry.
+  isAngryCard: 0

@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 49
   displayName: r25a1
   artwork: {fileID: 21300000, guid: 05d2ee3e7277572459fabca7b0edd92a, type: 3}
-  contentText: Bitch! That's our place~
+  contentText: This place is our home planet :((
+  isAngryCard: 0

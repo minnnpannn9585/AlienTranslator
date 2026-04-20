@@ -15,4 +15,5 @@ MonoBehaviour:
   id: 21
   displayName: r14b1
   artwork: {fileID: 21300000, guid: a15fbf7bcec42de4eaebe0437a65c608, type: 3}
-  contentText: I am a banana
+  contentText: I am a banana.
+  isAngryCard: 0
